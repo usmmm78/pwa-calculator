@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>해상도 계산기</title>
+    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 10px;
+            max-width: 100%;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .section {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background-color: #f8f9fa;
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .section-content {
+            padding: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            width: 25px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: right;
+            font-size: 1rem;
+            font-weight: 500;
+            -webkit-appearance: none;
+            background-color: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #90caf9;
+        }
+
+        .result-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .result-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-value {
+            flex: 1;
+            font-family: menlo, monospace;
+            font-size: 0.9rem;
+            text-align: right;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .blue-section {
+            background-color: #e3f2fd;
+        }
+
+        .amber-section {
+            background-color: #fff3e0;
+        }
+
+        /* PWA 설치 안내 */
+        #installPrompt {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #323232;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .install-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-left: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>해상도 계산기</h1>
+        
+        <!-- 스위처 아웃 해상도 -->
+        <div class="section">
+            <div class="section-header blue-section">스위처 아웃 해상도</div>
+            <div class="section-content">
+                <div class="input-group">
+                    <div class="input-label">H</div>
+                    <input type="number" id="switcherH" value="3840" pattern="[0-9]*" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <div class="input-label">V</div>
+                    <input type="number" id="switcherV" value="2160" pattern="[0-9]*" inputmode="decimal">
+                </div>
+            </div>
+        </div>
+
+        <!-- 현장 LED 해상도 -->
+        <div class="section">
+            <div class="section-header blue-section">현장 LED 해상도</div>
+            <div class="section-content">
+                <div class="input-group">
+                    <div class="input-label">H</div>
+                    <input type="number" id="ledH" value="4096" pattern="[0-9]*" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <div class="input-label">V</div>
+                    <input type="number" id="ledV" value="1536" pattern="[0-9]*" inputmode="decimal">
+                </div>
+            </div>
+        </div>
+
+        <!-- 비율 -->
+        <div class="section">
+            <div class="section-header">비율</div>
+            <div class="section-content">
+                <div class="result-group">
+                    <div class="input-label">H</div>
+                    <div id="ratioH" class="result-value">1.066666667</div>
+                </div>
+                <div class="result-group">
+                    <div class="input-label">V</div>
+                    <div id="ratioV" class="result-value">0.711111111</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 현장 16:9 -->
+        <div class="section">
+            <div class="section-header">현장 16:9</div>
+            <div class="section-content">
+                <div class="result-group">
+                    <div class="input-label">H</div>
+                    <div id="field169H" class="result-value">2730.666667</div>
+                </div>
+                <div class="result-group">
+                    <div class="input-label">V</div>
+                    <div id="field169V" class="result-value">1536</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 스위처 16:9 레이어 -->
+        <div class="section">
+            <div class="section-header amber-section">스위처 16:9 레이어</div>
+            <div class="section-content">
+                <div class="result-group">
+                    <div class="input-label">H</div>
+                    <div id="switcher169H" class="result-value">2560</div>
+                </div>
+                <div class="result-group">
+                    <div class="input-label">V</div>
+                    <div id="switcher169V" class="result-value">2160</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA 설치 안내 -->
+    <div id="installPrompt">
+        홈 화면에 앱으로 추가할 수 있습니다
+        <button class="install-button" id="installButton">설치</button>
+    </div>
+
+    <script>
+        // 모든 입력 필드에 이벤트 리스너 추가
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculate);
+            input.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+
+        // 계산 함수
+        function calculate() {
+            // 입력값 가져오기
+            const switcherH = parseFloat(document.getElementById('switcherH').value) || 0;
+            const switcherV = parseFloat(document.getElementById('switcherV').value) || 0;
+            const ledH = parseFloat(document.getElementById('ledH').value) || 0;
+            const ledV = parseFloat(document.getElementById('ledV').value) || 0;
+
+            if (switcherH && switcherV && ledH && ledV) {
+                // 1. 비율 계산
+                const ratioH = ledH / switcherH;
+                const ratioV = ledV / switcherV;
+
+                // 2. 현장 16:9 계산
+                const field169H = (ledV / 9) * 16;
+                const field169V = ledV;
+
+                // 3. 스위처 16:9 레이어 계산
+                const switcher169H = field169H / ratioH;
+                const switcher169V = switcherV;
+
+                // 결과 표시
+                document.getElementById('ratioH').textContent = ratioH.toFixed(9);
+                document.getElementById('ratioV').textContent = ratioV.toFixed(9);
+                document.getElementById('field169H').textContent = field169H.toFixed(6);
+                document.getElementById('field169V').textContent = field169V;
+                document.getElementById('switcher169H').textContent = Math.round(switcher169H);
+                document.getElementById('switcher169V').textContent = switcher169V;
+            }
+        }
+
+        // 초기 계산
+        calculate();
+
+        // 서비스 워커 등록
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // PWA 설치 관련
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installButton = document.getElementById('installButton');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installPrompt.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', (e) => {
+            installPrompt.style.display = 'none';
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                }
+                deferredPrompt = null;
+            });
+        });
+    </script>
+</body>
+</html>
